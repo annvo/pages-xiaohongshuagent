@@ -1,0 +1,450 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="index,follow">
+  <meta name="description" content="小红书内容工作台 把与「小红书」相关的公开信息整理成可执行的 Agent 视角：任务边界、工具约束、风险清单、验收标准与每日报道。本页是独立工作台说明，不是官方产品后台，也不提供登录与代操作。">
+  <title>小红书内容工作台 · xiaohongshuagent.com</title>
+  <style>
+    :root{
+      --ink:#101820;--muted:#5b6772;--line:#e5e0d4;--paper:#f5f2ea;--card:#fffdf8;
+      --deep:#0b1720;--accent:#8b5e2b;--good:#166534;--bad:#9f1239;
+      --good-bg:#eef8f1;--bad-bg:#fdf1f3;--shadow:0 1px 0 rgba(16,24,32,.04),0 14px 36px rgba(16,24,32,.06);
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.7 "PingFang SC","Microsoft YaHei",system-ui,sans-serif}
+    a{color:inherit}
+    .wrap{width:min(1140px,calc(100% - 40px));margin:0 auto}
+    .banner{background:var(--deep);color:#dce5ec;font-size:13px}
+    .banner .wrap{display:flex;gap:16px;justify-content:space-between;align-items:center;padding:11px 0;flex-wrap:wrap}
+    .banner strong{color:#fff}
+    .banner a{color:#f0d7a4}
+    header.site{position:sticky;top:0;z-index:30;background:rgba(245,242,234,.94);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+    header.site .wrap{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px 0}
+    .brand b{display:block;font-size:15px}
+    .brand span{display:block;font-size:12px;color:var(--muted);max-width:42vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    nav{display:flex;gap:12px;flex-wrap:wrap;font-size:12.5px;color:var(--muted)}
+    nav a{text-decoration:none}
+    nav a:hover{color:var(--ink)}
+    .cta{background:var(--deep);color:#fff;text-decoration:none;padding:10px 14px;border-radius:10px;font-size:13px;font-weight:700;white-space:nowrap}
+    .hero{padding:42px 0 24px}
+    .hero-grid{display:grid;grid-template-columns:1.45fr .85fr;gap:24px}
+    .kicker{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
+    h1{margin:0 0 14px;font:700 clamp(28px,4vw,42px)/1.18 "Georgia","Songti SC",serif}
+    .lead{margin:0;color:var(--muted);font-size:16.5px;max-width:62ch}
+    .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+    .chip{background:#efe7d7;color:#4a3b27;border-radius:999px;padding:5px 10px;font-size:12px;font-weight:700}
+    .side{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow)}
+    .side h2{margin:0 0 10px;font-size:14px}
+    .side p{margin:0 0 10px;font-size:13px;color:var(--muted)}
+    .stat{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+    .stat div{background:#f1ece1;border-radius:12px;padding:12px}
+    .stat b{display:block;font-size:22px;line-height:1}
+    .stat span{font-size:12px;color:var(--muted)}
+    section{padding:30px 0}
+    .sec-head{display:flex;justify-content:space-between;gap:16px;align-items:end;margin-bottom:16px;flex-wrap:wrap}
+    .sec-head h2{margin:0;font:700 26px/1.2 "Georgia","Songti SC",serif}
+    .sec-head p{margin:6px 0 0;color:var(--muted);font-size:14px;max-width:64ch}
+    .note{font-size:12px;color:var(--muted);background:#efe7d7;padding:8px 12px;border-radius:999px}
+    .news-board{display:grid;grid-template-columns:1fr 1.4fr;gap:16px}
+    .col{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:var(--shadow);min-height:300px}
+    .col-h{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
+    .col-h h3{margin:0;font-size:15px}
+    .count{font-size:12px;font-weight:800;padding:4px 8px;border-radius:999px}
+    .col.good .col-h{background:var(--good-bg)}
+    .col.bad .col-h{background:var(--bad-bg)}
+    .col.good .count{background:#d7f0e0;color:var(--good)}
+    .col.bad .count{background:#f8d8e0;color:var(--bad)}
+    .col-body{padding:12px;display:flex;flex-direction:column;gap:10px}
+    .nc{border:1px solid var(--line);border-radius:14px;padding:14px;background:#fff}
+    .nc.positive{border-left:3px solid var(--good)}
+    .nc.critical{border-left:3px solid var(--bad)}
+    .nc-meta{display:flex;justify-content:space-between;gap:10px;font-size:12px;color:var(--muted);margin-bottom:8px}
+    .badge{font-weight:800;color:var(--ink)}
+    .nc h3{margin:0 0 8px;font-size:15px;line-height:1.4}
+    .nc h3 a{text-decoration:none}
+    .nc h3 a:hover{text-decoration:underline;text-underline-offset:2px}
+    .nc p{margin:0 0 10px;font-size:13.5px;color:#334155}
+    .nc-foot{display:flex;justify-content:space-between;gap:10px;font-size:12px;color:var(--muted)}
+    .nc-foot a{color:var(--accent);font-weight:800;text-decoration:none}
+    .empty{padding:28px 14px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:12px;font-size:14px}
+    .g2{display:grid;grid-template-columns:1.15fr .85fr;gap:16px}
+    .g3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+    .g4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+    .card,.block,.guide,.step,.time,.risk{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:15px}
+    .card h3,.block h3,.step h3,.risk h3{margin:0 0 8px;font-size:14px}
+    .card p,.block p,.guide p,.step p,.time p,.risk p{margin:0;font-size:13.5px;color:var(--muted)}
+    .guide b,.step b,.time b{display:block;font-size:12px;color:var(--accent);margin-bottom:6px;letter-spacing:.04em}
+    .panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow)}
+    .panel h3{margin:0 0 12px;font-size:15px}
+    .panel ol,.panel ul{margin:0;padding-left:18px;color:#334155;font-size:14px}
+    .panel li{margin:0 0 8px}
+    .risk{display:flex;gap:12px;align-items:flex-start}
+    .risk .lv{flex:0 0 auto;font-size:12px;font-weight:800;padding:4px 8px;border-radius:999px}
+    .lv-hi .lv{background:#f8d8e0;color:var(--bad)}
+    .lv-mid .lv{background:#f5e6c8;color:#8a5a12}
+    .lv-lo .lv{background:#e4eef8;color:#1e4f7a}
+    .steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+    .faq{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:0 14px;margin:0 0 8px}
+    .faq summary{cursor:pointer;padding:14px 0;font-weight:700;font-size:14px;list-style:none}
+    .faq summary::-webkit-details-marker{display:none}
+    .faq p{margin:0 0 14px;color:var(--muted);font-size:13.5px}
+    .res{display:flex;flex-direction:column;gap:4px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;text-decoration:none}
+    .res:hover{border-color:#0b1720}
+    .res strong{font-size:14px}
+    .res span{font-size:12.5px;color:var(--muted)}
+    .longp{margin:0 0 14px;color:#334155;font-size:15px;max-width:78ch}
+    pre{margin:0;white-space:pre-wrap;font:13px/1.55 ui-monospace,Consolas,monospace;color:#334155;background:#f4efe4;border-radius:10px;padding:12px}
+    .cmp{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;overflow:auto}
+    .cmp h3{margin:0 0 10px;font-size:14px}
+    table{width:100%;border-collapse:collapse;font-size:13.5px}
+    th,td{border:1px solid var(--line);padding:10px;vertical-align:top;text-align:left}
+    th{background:#f1ece1}
+    .disc{background:var(--deep);color:#c9d4dd;border-radius:18px;padding:24px;box-shadow:var(--shadow)}
+    .disc h2{margin:0 0 12px;color:#fff;font:700 22px/1.25 "Georgia","Songti SC",serif}
+    .disc p{margin:0 0 10px;font-size:14px}
+    .disc a{color:#f0d7a4}
+    footer{border-top:1px solid var(--line);padding:22px 0 40px;color:var(--muted);font-size:13px}
+    footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+    footer strong{color:var(--ink)}
+    .news-toolbar{display:grid;grid-template-columns:1.1fr 1fr 1fr;gap:12px;margin-bottom:14px}
+    .tool-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:var(--shadow)}
+    .tool-card b{display:block;font-size:13px;margin-bottom:6px}
+    .tool-card p{margin:0;font-size:13px;color:var(--muted)}
+    .tool-card ul{margin:0;padding-left:18px;color:#334155;font-size:13px}
+    .tool-card li{margin:0 0 4px}
+    .col-help{margin:4px 0 0;font-size:12px;color:var(--muted);font-weight:400;max-width:36ch}
+    .news-foot-note{margin:12px 0 0;font-size:12.5px;color:var(--muted)}
+    .subhead{margin:0 0 10px;font-size:14px;color:var(--accent);letter-spacing:.04em}
+    .fact-strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:16px}
+    .fact-card{min-height:96px;background:var(--deep);color:#fff;border-radius:12px;padding:14px;display:flex;flex-direction:column;justify-content:space-between;gap:10px}
+    .fact-card span{font-size:11px;color:#d8bd8f;font-weight:800;letter-spacing:.06em}
+    .fact-card strong{font-size:14px;line-height:1.55;font-weight:700}
+    .nc .stance-tag{display:inline-block;font-size:11px;font-weight:800;padding:2px 8px;border-radius:999px;margin-right:8px}
+    .nc.positive .stance-tag{background:#d7f0e0;color:var(--good)}
+    .nc.critical .stance-tag{background:#f8d8e0;color:var(--bad)}
+    code{font-family:ui-monospace,Consolas,monospace;font-size:12px;background:#efe7d7;padding:1px 6px;border-radius:6px}
+    @media(max-width:960px){.news-toolbar,.fact-strip{grid-template-columns:1fr}}
+    @media(max-width:960px){
+      .hero-grid,.news-board,.g2{grid-template-columns:1fr}
+      .g3,.g4,.steps{grid-template-columns:1fr 1fr}
+      nav{display:none}
+    }
+    @media(max-width:560px){
+      .wrap{width:min(100% - 28px,1140px)}
+      .g3,.g4,.steps{grid-template-columns:1fr}
+      h1{font-size:28px}
+    }
+  </style>
+</head>
+<body>
+  <div class="banner"><div class="wrap">
+    <div><strong>独立站 · 与品牌无关</strong> — 非官方、无授权、非客服。商标名仅用于指称公开讨论对象。</div>
+    <div>日更识别 00:00 CST · <a href="mailto:admin@xiaohongshuagent.com">admin@xiaohongshuagent.com</a></div>
+  </div></div>
+
+  <header class="site"><div class="wrap">
+    <div class="brand"><b>xiaohongshuagent.com</b><span>Agent 工作台 · 小红书内容工作台</span></div>
+    <nav>
+      <a href="#news">新闻双栏</a>
+      <a href="#industry">行业分析</a>
+      <a href="#brand">品牌切片</a>
+      <a href="#focus">维度</a>
+      <a href="#method">方法</a>
+      <a href="#risk">风险</a>
+      <a href="#play">流程</a>
+      <a href="#faq">FAQ</a>
+      <a href="#contact">联系</a>
+    </nav>
+    <a class="cta" href="mailto:admin@xiaohongshuagent.com?subject=%E8%81%94%E7%B3%BB%20xiaohongshuagent.com">合作 / 过户询价</a>
+  </div></header>
+
+  <main>
+    <section class="hero"><div class="wrap hero-grid">
+      <div>
+        <div class="kicker">Agent 工作台 · 内容社区</div>
+        <h1>小红书内容工作台</h1>
+        <p class="lead">小红书内容工作台 把与「小红书」相关的公开信息整理成可执行的 Agent 视角：任务边界、工具约束、风险清单、验收标准与每日报道。本页是独立工作台说明，不是官方产品后台，也不提供登录与代操作。</p>
+        <div class="chips"><span class="chip">小红书</span><span class="chip">Xiaohongshu</span></div>
+      </div>
+      <aside class="side">
+        <h2>本页不是官网</h2>
+        <p>本站是关于「小红书」公开信息的独立观察页，与 小红书 及其关联公司无隶属、无授权、无代言、无代理关系。本站不提供官方客服、账户登录、售后受理或产品销售。页面出现的商标名、产品名仅用于指称公开讨论对象，便于检索与对照阅读。</p>
+        <div class="stat">
+          <div><b id="pos-count">2</b><span>进展上限 4</span></div>
+          <div><b id="crit-count">5</b><span>风险上限 12</span></div>
+        </div>
+        <p style="margin-top:12px;margin-bottom:0">编排目标：风险约 3× 进展。无材料时显示空态，不补假新闻。更新：<span id="news-updated">等待每日零点任务写入</span></p>
+      </aside>
+    </div></section>
+
+    <section id="news"><div class="wrap">
+      <div class="sec-head">
+        <div>
+          <h2>每日公开报道双栏</h2>
+          <p>左栏汇集与「小红书」相关的建设性公开进展，右栏放大投诉、合规、安全与失败案例。目标展示比约 1:3，用来对冲“好消息更容易被转发”的传播偏差。摘要只负责扫描，原文负责裁决。</p>
+        </div>
+        <div class="note">进展上限 4 / 风险上限 12。配额是上限不是任务：没有材料就空态，不硬凑负面，不编造正面。</div>
+      </div>
+
+      <div class="news-toolbar">
+        <div class="tool-card">
+          <b>如何使用双栏</b>
+          <p>先扫右栏风险，再看左栏进展；只把“主体对齐 + 有原文 + 有日期”的条目升级为内部结论。</p>
+        </div>
+        <div class="tool-card">
+          <b>更新与 API</b>
+          <p>日更 00:00 CST。更新标记：<span id="news-updated">等待每日零点任务写入</span> · 同域 <code>/api/news</code></p>
+        </div>
+        <div class="tool-card">
+          <b>核验清单</b>
+          <ul><li>主体是否就是本页讨论对象</li><li>是否有可点击原文</li><li>日期是事件日还是转载日</li><li>是否已有更正/撤稿</li><li>是否只是行业共性被安到品牌头上</li><li>若要行动：负责人与截止时间是谁</li></ul>
+        </div>
+      </div>
+
+      <div class="news-board">
+        <div class="col good">
+          <div class="col-h">
+            <div>
+              <h3>进展</h3>
+              <p class="col-help">产品发布、合作、扩产、功能更新、可核验的业务进展（须与「小红书」主体对齐）。</p>
+            </div>
+            <span class="count" id="pos-count-label">2</span>
+          </div>
+          <div class="col-body" id="positive-list"><article class="nc positive">
+    <div class="nc-meta"><span class="badge">进展 01</span><span>编辑配置的检索入口</span></div>
+    <h3><a href="https://news.google.com/search?q=%E5%B0%8F%E7%BA%A2%E4%B9%A6&amp;hl=zh-CN&amp;gl=CN&amp;ceid=CN:zh-Hans" target="_blank" rel="noopener noreferrer">「小红书」公开进展检索入口</a></h3>
+    <p>用关键词 小红书 / Xiaohongshu 扫描产品发布、合作与可核验业务动态。进入结果后仍需人工确认主体与时间；本条本身不是事件。</p>
+    <div class="nc-foot"><a href="https://news.google.com/search?q=%E5%B0%8F%E7%BA%A2%E4%B9%A6&amp;hl=zh-CN&amp;gl=CN&amp;ceid=CN:zh-Hans" target="_blank" rel="noopener noreferrer">阅读原文</a><span>日期以原文为准</span></div>
+  </article><article class="nc positive">
+    <div class="nc-meta"><span class="badge">进展 02</span><span>编辑配置的检索入口</span></div>
+    <h3><a href="https://duckduckgo.com/?q=%E5%B0%8F%E7%BA%A2%E4%B9%A6+launch+OR+release+OR+partnership+OR+发布+OR+合作&amp;ia=news" target="_blank" rel="noopener noreferrer">内容社区 语境下的建设性信号补充检索</a></h3>
+    <p>补充查找 launch / release / partnership / 发布 / 合作 等建设性公开材料，并与「小红书」主体对齐后方可进入进展栏。</p>
+    <div class="nc-foot"><a href="https://duckduckgo.com/?q=%E5%B0%8F%E7%BA%A2%E4%B9%A6+launch+OR+release+OR+partnership+OR+发布+OR+合作&amp;ia=news" target="_blank" rel="noopener noreferrer">阅读原文</a><span>日期以原文为准</span></div>
+  </article></div>
+        </div>
+        <div class="col bad">
+          <div class="col-h">
+            <div>
+              <h3>风险 / 争议</h3>
+              <p class="col-help">召回、诉讼、处罚、故障、数据安全、虚假宣传、大规模投诉等；在 内容社区 中这些条目默认更高证据门槛。</p>
+            </div>
+            <span class="count" id="crit-count-label">5</span>
+          </div>
+          <div class="col-body" id="critical-list"><article class="nc critical">
+    <div class="nc-meta"><span class="badge">风险/争议 01</span><span>编辑配置的检索入口</span></div>
+    <h3><a href="https://news.google.com/search?q=%E5%B0%8F%E7%BA%A2%E4%B9%A6+(recall OR lawsuit OR complaint OR fine OR investigation OR 处罚 OR 投诉 OR 召回 OR 故障)&amp;hl=zh-CN&amp;gl=CN&amp;ceid=CN:zh-Hans" target="_blank" rel="noopener noreferrer">「小红书」风险向检索：投诉/处罚/召回/诉讼</a></h3>
+    <p>优先暴露 虚假信息、广告合规、隐私、青少年保护 相关公开材料。命中后先看原文，再看是否与主体直接相关。</p>
+    <div class="nc-foot"><a href="https://news.google.com/search?q=%E5%B0%8F%E7%BA%A2%E4%B9%A6+(recall OR lawsuit OR complaint OR fine OR investigation OR 处罚 OR 投诉 OR 召回 OR 故障)&amp;hl=zh-CN&amp;gl=CN&amp;ceid=CN:zh-Hans" target="_blank" rel="noopener noreferrer">阅读原文</a><span>日期以原文为准</span></div>
+  </article><article class="nc critical">
+    <div class="nc-meta"><span class="badge">风险/争议 02</span><span>编辑配置的检索入口</span></div>
+    <h3><a href="https://duckduckgo.com/?q=%E5%B0%8F%E7%BA%A2%E4%B9%A6+privacy+OR+security+OR+compliance+OR+隐私+OR+安全+OR+合规&amp;ia=news" target="_blank" rel="noopener noreferrer">「小红书」安全、隐私与合规讨论检索</a></h3>
+    <p>对隐私、安全漏洞、广告宣传、数据合规类材料提高证据门槛：需要可定位来源与明确时间。</p>
+    <div class="nc-foot"><a href="https://duckduckgo.com/?q=%E5%B0%8F%E7%BA%A2%E4%B9%A6+privacy+OR+security+OR+compliance+OR+隐私+OR+安全+OR+合规&amp;ia=news" target="_blank" rel="noopener noreferrer">阅读原文</a><span>日期以原文为准</span></div>
+  </article><article class="nc critical">
+    <div class="nc-meta"><span class="badge">风险/争议 03</span><span>编辑配置的检索入口</span></div>
+    <h3><a href="https://duckduckgo.com/?q=%E5%86%85%E5%AE%B9%E7%A4%BE%E5%8C%BA%20%E9%A3%8E%E9%99%A9%20%E7%9B%91%E7%AE%A1%20%E6%8A%95%E8%AF%89%20%E6%96%B0%E9%97%BB&amp;ia=news" target="_blank" rel="noopener noreferrer">内容社区 行业对照：避免把共性写成个例</a></h3>
+    <p>检索 内容社区 政策、供应链与竞争波动，用来判断某条涉及「小红书」的新闻究竟是个例还是行业冲击。</p>
+    <div class="nc-foot"><a href="https://duckduckgo.com/?q=%E5%86%85%E5%AE%B9%E7%A4%BE%E5%8C%BA%20%E9%A3%8E%E9%99%A9%20%E7%9B%91%E7%AE%A1%20%E6%8A%95%E8%AF%89%20%E6%96%B0%E9%97%BB&amp;ia=news" target="_blank" rel="noopener noreferrer">阅读原文</a><span>日期以原文为准</span></div>
+  </article><article class="nc critical">
+    <div class="nc-meta"><span class="badge">风险/争议 04</span><span>编辑配置的检索入口</span></div>
+    <h3><a href="https://news.google.com/search?q=%E5%B0%8F%E7%BA%A2%E4%B9%A6+(outage OR delay OR refund OR 故障 OR 维权 OR 投诉)&amp;hl=zh-CN&amp;gl=CN&amp;ceid=CN:zh-Hans" target="_blank" rel="noopener noreferrer">「小红书」服务故障/维权/渠道争议补充</a></h3>
+    <p>用于发现停服、延迟、退款难、渠道冲突、大规模差评等线索。社交帖需与权威来源交叉后才提升结论强度。</p>
+    <div class="nc-foot"><a href="https://news.google.com/search?q=%E5%B0%8F%E7%BA%A2%E4%B9%A6+(outage OR delay OR refund OR 故障 OR 维权 OR 投诉)&amp;hl=zh-CN&amp;gl=CN&amp;ceid=CN:zh-Hans" target="_blank" rel="noopener noreferrer">阅读原文</a><span>日期以原文为准</span></div>
+  </article><article class="nc critical">
+    <div class="nc-meta"><span class="badge">风险/争议 05</span><span>编辑提示</span></div>
+    <h3><a href="https://duckduckgo.com/?q=%E5%B0%8F%E7%BA%A2%E4%B9%A6%20Xiaohongshu+(scam OR counterfeit OR 山寨 OR 经销商 OR 授权)" target="_blank" rel="noopener noreferrer">主体错配与山寨/经销商新闻过滤提示</a></h3>
+    <p>同名企业、经销商活动、假冒店铺常与「小红书」混淆。摘要前核对中英文主体、域名与授权关系，不确定则降级为待核验。</p>
+    <div class="nc-foot"><a href="https://duckduckgo.com/?q=%E5%B0%8F%E7%BA%A2%E4%B9%A6%20Xiaohongshu+(scam OR counterfeit OR 山寨 OR 经销商 OR 授权)" target="_blank" rel="noopener noreferrer">阅读原文</a><span>日期以原文为准</span></div>
+  </article></div>
+        </div>
+      </div>
+      <p class="news-foot-note">日更 00:00 CST；/api/news 可取 JSON。独立站与品牌无关。</p>
+    </div></section>
+
+    
+    <section id="industry"><div class="wrap">
+      <div class="sec-head"><div><h2>行业专属分析 · 内容社区</h2><p>内容社区观察应覆盖创作者生态、商业化、算法分发、虚假信息与未成年人保护。</p></div></div>
+      <div class="g2" style="margin-bottom:12px">
+        <div class="panel"><h3>行业结构轴</h3><div class="g2" style="grid-template-columns:1fr 1fr;gap:10px"><div class="card"><h3>结构 1 · 创作者工具与激励</h3><p>在 内容社区 中阅读「小红书」相关公开信息时，把“创作者工具与激励”单独建轴，避免被单次发布或单条投诉带节奏。</p></div><div class="card"><h3>结构 2 · 商业化</h3><p>在 内容社区 中阅读「小红书」相关公开信息时，把“商业化”单独建轴，避免被单次发布或单条投诉带节奏。</p></div><div class="card"><h3>结构 3 · 推荐分发</h3><p>在 内容社区 中阅读「小红书」相关公开信息时，把“推荐分发”单独建轴，避免被单次发布或单条投诉带节奏。</p></div><div class="card"><h3>结构 4 · 治理与举报</h3><p>在 内容社区 中阅读「小红书」相关公开信息时，把“治理与举报”单独建轴，避免被单次发布或单条投诉带节奏。</p></div><div class="card"><h3>结构 5 · 隐私</h3><p>在 内容社区 中阅读「小红书」相关公开信息时，把“隐私”单独建轴，避免被单次发布或单条投诉带节奏。</p></div></div></div>
+        <div class="panel"><h3>中国市场校对</h3><p style="margin:0;color:var(--muted);font-size:14px">若材料涉及中国市场，额外核对：主体中英文名是否一致、是否为授权商/经销商新闻、监管口径是否仅适用于特定省份或平台、中英文稿是否存在表述差。检索词可用：小红书 / Xiaohongshu。</p>
+          <h3 style="margin-top:16px">阅读方法</h3><ul><li>先行业结构，后品牌条目，再决定是否进入新闻双栏。</li><li>高风险主题（安全、资金、召回、处罚）默认提高证据门槛。</li><li>行业共性波动不要直接写成品牌独有危机。</li><li>政策与合规变化优先看适用范围和生效时间。</li></ul>
+        </div>
+      </div>
+      <div class="g3">
+        <div class="panel"><h3>重点观察</h3><ul><li>围绕「小红书」核验：流量规则变化</li><li>围绕「小红书」核验：软广与虚假种草</li><li>围绕「小红书」核验：账号处罚</li><li>围绕「小红书」核验：数据安全</li><li>围绕「小红书」核验：未成年人内容</li></ul></div>
+        <div class="panel"><h3>高价值信号源</h3><ul><li>社区公告</li><li>监管公开信息</li><li>典型案例报道</li></ul></div>
+        <div class="panel"><h3>行业风险主题</h3><ul><li>内容社区 高频风险主题：虚假信息</li><li>内容社区 高频风险主题：广告合规</li><li>内容社区 高频风险主题：隐私</li><li>内容社区 高频风险主题：青少年保护</li></ul></div>
+      </div>
+    </div></section>
+    
+    <section id="brand"><div class="wrap">
+      <div class="sec-head"><div><h2>品牌 / 主体专属切片</h2><p>本页从 Agent 工作视角观察「小红书」：哪些任务可自动化、哪些必须门禁、哪些公开风险会污染自动化输入。</p></div></div>
+      <h3 class="subhead">品牌硬事实 · xiaohongshu</h3>
+      <div class="fact-strip">
+    <div class="fact-card">
+      <span>事实 01</span>
+      <strong>小红书是中国生活方式内容社区与消费决策平台。</strong>
+    </div>
+    <div class="fact-card">
+      <span>事实 02</span>
+      <strong>内容分发、创作者、商业合作与交易线索相互连接。</strong>
+    </div>
+    <div class="fact-card">
+      <span>事实 03</span>
+      <strong>软广标识、虚假种草、账号治理与隐私是核心风险面。</strong>
+    </div></div>
+      <div class="g2" style="margin-bottom:12px">
+        <div class="panel"><h3>声誉驱动因素</h3><ul><li>产品/服务是否兑现公开承诺（对「小红书」最敏感的是 虚假信息）。</li><li>沟通是否及时：故障、召回、下架、涨价是否有清楚说明。</li><li>渠道体验：购买、配送、售后、门店或在线客服的公开投诉密度。</li><li>是否频繁出现主体错配（经销商、同名公司、山寨）。</li></ul></div>
+        <div class="panel"><h3>观察节奏</h3><ul><li>每日：扫描进展/风险候选，维护双栏。</li><li>每周：复盘误伤、漏检、旧闻循环，更新关注词。</li><li>重大事件：提高更新频率，但证据门槛不降。</li><li>无材料日：保持空态，不编造“看起来丰富”的条目。</li></ul><p style="margin:12px 0 0;color:var(--muted);font-size:13px">名称「小红书」仅用于指称。本站与权利人无隶属、无授权、非客服。</p></div>
+      </div>
+      <h3 class="subhead">公开信息落点</h3>
+      <div class="g4" style="margin-bottom:14px"><div class="card"><h3>创作者工具与激励</h3><p>与「小红书」相关的公开材料若落到“创作者工具与激励”，优先提取可核验事实（时间、主体、范围），再看解读与情绪。索引 1。</p></div><div class="card"><h3>商业化</h3><p>与「小红书」相关的公开材料若落到“商业化”，优先提取可核验事实（时间、主体、范围），再看解读与情绪。索引 2。</p></div><div class="card"><h3>推荐分发</h3><p>与「小红书」相关的公开材料若落到“推荐分发”，优先提取可核验事实（时间、主体、范围），再看解读与情绪。索引 3。</p></div><div class="card"><h3>治理与举报</h3><p>与「小红书」相关的公开材料若落到“治理与举报”，优先提取可核验事实（时间、主体、范围），再看解读与情绪。索引 4。</p></div></div>
+      <h3 class="subhead">争议模式（先核验再写入风险栏）</h3>
+      <div class="g3" style="margin-bottom:14px"><div class="card"><h3>虚假信息</h3><p>历史与同类行业中，“虚假信息”常见于 内容社区。看到相关标题时，先核原文、主体、时间，再决定是否写入风险栏。</p></div><div class="card"><h3>广告合规</h3><p>历史与同类行业中，“广告合规”常见于 内容社区。看到相关标题时，先核原文、主体、时间，再决定是否写入风险栏。</p></div><div class="card"><h3>隐私</h3><p>历史与同类行业中，“隐私”常见于 内容社区。看到相关标题时，先核原文、主体、时间，再决定是否写入风险栏。</p></div><div class="card"><h3>青少年保护</h3><p>历史与同类行业中，“青少年保护”常见于 内容社区。看到相关标题时，先核原文、主体、时间，再决定是否写入风险栏。</p></div></div>
+      <h3 class="subhead">研究切入点</h3>
+      <div class="g3"><div class="card"><h3>版本/政策时间线</h3><p>为「小红书」建立发布时间、政策生效、价格调整与故障窗口的时间线，防止旧闻当新发。</p></div><div class="card"><h3>口径差对照</h3><p>官方说明 vs 媒体报道 vs 用户集中反馈，三列对照，只把重叠事实升级为高置信。</p></div><div class="card"><h3>区域差</h3><p>同一产品在不同市场的功能、价格、合规与可用性可能不同；摘要必须写清区域。</p></div><div class="card"><h3>竞品对照</h3><p>把同类事件放到 内容社区 竞品背景中，区分行业冲击与个体问题。</p></div><div class="card"><h3>可行动点</h3><p>每条高价值线索最终落到：知晓 / 内部同步 / 需尽调 / 需升级处理，四选一。</p></div><div class="card"><h3>反钓鱼</h3><p>任何声称“小红书 官方”但指向本独立站或索要验证码的路径，均视为高风险。</p></div></div>
+    </div></section>
+
+    <section id="focus"><div class="wrap">
+      <div class="sec-head"><div><h2>关注维度</h2><p>稳定阅读轴，避免被单条标题带着跑。</p></div></div>
+      <div class="g4"><div class="card"><h3>任务拆解</h3><p>把与「小红书」相关的目标写成：输入材料、成功标准、截止条件、失败退出与人工复核点。</p></div><div class="card"><h3>工具边界</h3><p>只启用完成任务所需的最小权限、最小数据范围与最短有效期；默认只读。</p></div><div class="card"><h3>不可逆门禁</h3><p>提交、支付、删除、群发、批量改价、对外承诺等动作必须显式授权，禁止静默执行。</p></div><div class="card"><h3>上下文裁剪</h3><p>优先使用公开资料与授权材料；避免把无关隐私、密钥、客户清单塞进提示词。</p></div><div class="card"><h3>结果验收</h3><p>交付物应含：结论、证据链接、不确定性、剩余风险、建议下一步与可复现线索。</p></div><div class="card"><h3>异常处理</h3><p>超时、空结果、冲突信息、工具失败都要有降级策略，而不是编造完成态。</p></div><div class="card"><h3>行业语境</h3><p>本页关注 内容社区。不同行业的合规阈值不同，自动化前请按本地法规与平台政策复核。</p></div><div class="card"><h3>资讯双栏</h3><p>左侧进展与合作，右侧扩大投诉、合规、故障与失败案例，避免只读营销叙事。</p></div></div>
+    </div></section>
+
+    <section id="guide"><div class="wrap">
+      <div class="sec-head"><div><h2>阅读分层</h2><p>按时间预算使用本页：扫描 → 核验 → 归类 → 决策前尽调。</p></div></div>
+      <div class="g4"><div class="guide"><b>30 秒</b><p>确认本站是独立页、与「小红书」无关；扫一眼今日进展条数与风险条数，判断是否有值得展开的条目。</p></div><div class="guide"><b>3 分钟</b><p>先读风险栏再读进展栏；对诉讼、处罚、召回、大规模故障条目点开原文，核对主体与日期。</p></div><div class="guide"><b>10 分钟</b><p>结合关注维度与方法说明，把线索归入：事实已确认 / 待核验 / 不相关。需要行动时写出负责人与截止时间。</p></div><div class="guide"><b>决策前</b><p>本页只是目录与扫描器。采购、合作、投资、公关响应请另做尽调：多源交叉、内部材料、法务/合规意见。</p></div></div>
+    </div></section>
+
+    <section id="about"><div class="wrap">
+      <div class="sec-head"><div><h2>定位与边界</h2><p>本站写什么、不写什么、如何更新、如何核验。</p></div></div>
+      <div class="g2">
+        <div class="panel"><h3>说明</h3><div style="display:grid;gap:10px"><div class="block"><h3>工作台定位</h3><p>围绕「小红书」相关公开语境，整理可被 Agent 使用的任务模板、检查项和资讯摘要，而不是替代官方产品或客服。</p></div><div class="block"><h3>为什么分左右栏新闻</h3><p>左侧保留进展与合作，右侧扩大风险、投诉、合规和失败案例，帮助使用者避免只看到营销叙事，降低自动化误判。</p></div><div class="block"><h3>更新机制</h3><p>北京时间每天 00:00 触发识别；若有重要公开报道则更新摘要。材料不足时显示实际条数，不补假新闻。</p></div><div class="block"><h3>任务设计建议</h3><p>先写清成功标准与停止条件，再选工具；先限制数据范围，再谈自动化。能人工复核的关键步骤不要完全交给模型。</p></div><div class="block"><h3>工具与权限</h3><p>默认只读；写入、发送、支付、删除必须分权。会话级临时令牌优于长期全局密钥。参数与影响对象应可审计。</p></div><div class="block"><h3>质量验收</h3><p>交付物应包含：结论、证据链接、不确定性、剩余风险、建议下一步。缺少证据的断言应降级为待核验。</p></div><div class="block"><h3>人机交接</h3><p>自动化适合草稿、检索、归类与提醒；对外承诺、资金与删改必须人工确认。交接包应包含上下文摘要与未决问题。</p></div><div class="block"><h3>行业语境</h3><p>本页关注 内容社区。不同行业的合规阈值不同，自动化前请按本地法规与平台政策复核。</p></div><div class="block"><h3>独立声明</h3><p>本站是关于「小红书」公开信息的独立观察页，与 小红书 及其关联公司无隶属、无授权、无代言、无代理关系。本站不提供官方客服、账户登录、售后受理或产品销售。页面出现的商标名、产品名仅用于指称公开讨论对象，便于检索与对照阅读。</p></div><div class="block"><h3>检索词</h3><p>公开材料检索可围绕：小红书 / Xiaohongshu。</p></div></div></div>
+        <div>
+          <div class="panel" style="margin-bottom:12px"><h3>阅读清单</h3><ol><li>目标是否可验证、可停止</li><li>权限是否最小、是否可回收</li><li>结果是否可审计、可复现</li><li>不可逆动作是否显式授权</li><li>来源是否可回溯到原文</li><li>失败是否有降级与告警</li><li>隐私数据是否最小化</li><li>交付是否含剩余风险</li><li>是否误把本页当官方后台</li><li>对外发送前是否人工复核</li></ol></div>
+          <div class="panel"><h3>证据核验清单</h3><ul><li>是否有可点击原文链接</li><li>来源机构是否可识别</li><li>日期是否明确（发布时间/事件时间）</li><li>主体是否与「小红书」对齐</li><li>是否区分事实、评论与传闻</li><li>高风险条目是否有第二来源</li><li>是否存在更正、撤稿或辟谣</li><li>是否影响决策，或仅供知晓</li><li>若进入行动，是否指定负责人与时限</li><li>是否误把本站或摘要当作官网结论</li></ul></div>
+        </div>
+      </div>
+    </div></section>
+
+    <section id="risk"><div class="wrap">
+      <div class="sec-head"><div><h2>风险矩阵</h2><p>先看见高成本误判，再决定是否把线索升级为行动。</p></div></div>
+      <div class="g2"><div class="risk lv-hi"><span class="lv">高</span><div><h3>越权与不可逆动作</h3><p>未设门禁的支付、删除、群发、批量修改可能导致真实损失。默认拒绝，显式授权后执行。</p></div></div><div class="risk lv-hi"><span class="lv">高</span><div><h3>密钥与隐私泄露</h3><p>把生产密钥、客户数据、会话 Cookie 写入提示词或前端页面，是最常见的事故源。</p></div></div><div class="risk lv-hi"><span class="lv">高</span><div><h3>把独立站当官方后台</h3><p>本页与「小红书」无授权关系。在本站输入账号验证码或相信“官方客服”链接，属于高风险行为。</p></div></div><div class="risk lv-mid"><span class="lv">中</span><div><h3>幻觉当作事实</h3><p>模型可能编造未发生的政策、故障或合作。所有对外结论必须绑定原文链接。</p></div></div><div class="risk lv-mid"><span class="lv">中</span><div><h3>行业合规阈值</h3><p>内容社区 对宣传、金融、医疗、个人信息等字段更敏感。自动化前应按本地法规复核。</p></div></div><div class="risk lv-lo"><span class="lv">低</span><div><h3>更新空态被误读</h3><p>今日无足够可信材料时显示空态，不代表“世界无事发生”，只代表未达证据门槛。</p></div></div></div>
+    </div></section>
+
+    <section id="method"><div class="wrap">
+      <div class="sec-head"><div><h2>方法与原则</h2><p>证据门槛、来源优先级、空态诚实与行动拆分。</p></div></div>
+      <div class="g4"><div class="card"><h3>证据门槛</h3><p>高风险结论需要更高证据密度：原始文件或权威报道、多源交叉、明确时间与主体对齐。达不到门槛就标为待核验或丢弃。</p></div><div class="card"><h3>来源优先级</h3><p>原始通告 &gt; 主流报道 &gt; 研究机构 &gt; 行业媒体 &gt; 聚合转载。越靠后，越需要额外核验。</p></div><div class="card"><h3>对立解释</h3><p>同一事件若存在多方说法，摘要并列呈现，不把“更响的声音”写成唯一事实。</p></div><div class="card"><h3>降级规则</h3><p>缺链接、缺时间、主体不清、明显营销话术：不进入确定性表述，最多作为线索。</p></div><div class="card"><h3>空态诚实</h3><p>今日无足够可信材料时显示空态。空态是质量信号，不是系统故障。</p></div><div class="card"><h3>更新失败</h3><p>日更任务失败时，页面保持可访问；新闻区显示空态或上次可信状态，不用低质量条目填满。</p></div><div class="card"><h3>摘要边界</h3><p>摘要服务扫描，不服务情绪。不扩写未证实动机，不预测未发生结果。</p></div><div class="card"><h3>行动拆分</h3><p>信息与行动分开：先确认事实，再决定是否立项、是否升级、是否对外回应。</p></div></div>
+      <div class="g3" style="margin-top:12px"><div class="card"><h3>声明优先</h3><p>任何阅读路径都先经过独立站声明，降低误认官网的概率。</p></div><div class="card"><h3>证据优先</h3><p>没有可回溯证据，就不升级为确定表述。</p></div><div class="card"><h3>对称优先</h3><p>进展与风险对照呈现，抑制单边叙事。</p></div><div class="card"><h3>空态优先</h3><p>宁可空，不硬凑；宁可少更新，不制造虚假确定性。</p></div><div class="card"><h3>最小权限</h3><p>涉及 Agent/MCP 讨论时，默认只读与可回收会话权限。</p></div><div class="card"><h3>人工负责</h3><p>自动化可以起草，责任仍在人；不可逆动作必须门禁。</p></div></div>
+    </div></section>
+
+    <section id="play"><div class="wrap">
+      <div class="sec-head"><div><h2>操作流程</h2><p>从扫描/询价到验收的最小可执行路径。</p></div></div>
+      <div class="steps"><div class="step"><b>01</b><h3>定义目标</h3><p>用一句话写清成功长什么样，以及什么情况下必须停止。</p></div><div class="step"><b>02</b><h3>收紧权限</h3><p>默认只读；列出需要写权限的动作与审批人。</p></div><div class="step"><b>03</b><h3>准备输入</h3><p>只提供完成任务所需的最小材料，脱敏后再进入模型。</p></div><div class="step"><b>04</b><h3>执行与留痕</h3><p>记录工具调用、中间结果与异常；禁止静默跳过失败。</p></div><div class="step"><b>05</b><h3>验收</h3><p>核对证据链接、不确定性与剩余风险；缺证据则降级。</p></div><div class="step"><b>06</b><h3>交接/发布</h3><p>对外内容必须人工确认；发布后保留版本与回滚点。</p></div></div>
+    </div></section>
+
+    <section id="scenarios"><div class="wrap">
+      <div class="sec-head"><div><h2>典型场景</h2><p>把方法落到具体使用情境。</p></div></div>
+      <div class="g3"><div class="card"><h3>每日资讯简报</h3><p>Agent 拉取「小红书」公开材料，按进展/风险归类，输出不超过一页的简报，并附原文链接。</p></div><div class="card"><h3>投诉聚类预研</h3><p>对公开投诉与差评做主题聚类，只输出可核验样本与比例区间，不把情绪当结论。</p></div><div class="card"><h3>发布会对照</h3><p>把官方通告要点与外部报道分歧点并列，标注哪些是事实、哪些是解读。</p></div><div class="card"><h3>任务草稿生成</h3><p>根据用户目标生成任务卡：输入、步骤、工具、门禁、验收。执行仍需人工确认。</p></div><div class="card"><h3>合规预检</h3><p>在 内容社区 语境下检查文案是否触及敏感承诺、未经验证的功效或未授权标识。</p></div><div class="card"><h3>失败复盘</h3><p>当自动化失败时，整理：输入、工具返回、假设、缺口与下次改动，而不是直接重跑碰运气。</p></div></div>
+    </div></section>
+
+    <section id="compare"><div class="wrap">
+      <div class="sec-head"><div><h2>对照表</h2><p>清楚区分“本站提供什么 / 不提供什么”或“建议 / 高风险做法”。</p></div></div>
+      <div class="cmp"><h3>建议做法 vs 高风险做法</h3><table><thead><tr><th>建议做法</th><th>高风险做法</th></tr></thead><tbody><tr><td>最小权限 + 会话回收</td><td>长期全局密钥写进前端</td></tr><tr><td>结论绑定原文与不确定性</td><td>模型输出直接当事实发布</td></tr><tr><td>不可逆动作人工门禁</td><td>静默支付/删除/群发</td></tr><tr><td>失败降级与审计字段</td><td>失败后编造完成态</td></tr></tbody></table></div>
+    </div></section>
+
+    <section id="templates"><div class="wrap">
+      <div class="sec-head"><div><h2>可用模板</h2><p>询价、任务卡、线索记录与转发格式，减少协作摩擦。</p></div></div>
+      <div class="g2"><div class="block"><h3>任务卡模板</h3><pre>目标：
+成功标准：
+停止条件：
+输入材料：
+允许工具：
+禁止动作：
+验收人：
+截止时间：</pre></div><div class="block"><h3>简报模板</h3><pre>关于「小红书」的今日公开信息
+- 进展（附链接）：
+- 风险（附链接）：
+- 不确定点：
+- 建议下一步：
+- 是否需要升级：</pre></div><div class="block"><h3>门禁确认模板</h3><pre>动作类型：
+影响对象：
+可回滚性：
+审批人：
+证据：
+执行窗口：</pre></div></div>
+    </div></section>
+
+    <section id="pipeline"><div class="wrap">
+      <div class="sec-head"><div><h2>更新流水线</h2><p>从扫描到发布的固定步骤，保证可预期与可复盘。</p></div></div>
+      <div class="g4"><div class="time"><b>T0 扫描</b><p>按关键词与公开源拉取候选材料。</p></div><div class="time"><b>T1 过滤</b><p>去除无链接、无日期、主体不清与低质量聚合。</p></div><div class="time"><b>T2 分流</b><p>按进展/风险分栏，并应用 1:3 展示纪律。</p></div><div class="time"><b>T3 核验</b><p>高风险条目交叉核对；不通过则降级或丢弃。</p></div><div class="time"><b>T4 摘要</b><p>压缩事实与分歧，保留原文与时间。</p></div><div class="time"><b>T5 发布</b><p>写入存储，供页面与 /api/news 读取。</p></div><div class="time"><b>T6 复盘</b><p>记录空态、误伤与漏检，改进规则。</p></div><div class="time"><b>日节奏</b><p>北京时间 00:00 触发；失败则保持诚实状态。</p></div></div>
+    </div></section>
+
+    <section id="longform"><div class="wrap">
+      <div class="sec-head"><div><h2>深度说明</h2><p>为什么这样编排，以及如何把本页用于预研而不是替代尽调。</p></div></div>
+      <div class="panel"><p class="longp">xiaohongshuagent.com 选择把声明、方法、风险纪律与新闻编排放在同一视图，是为了减少“多级页面导致声明漂移”的问题：访客不需要点进二级页才能看到“非官网、无授权、非客服”。对「小红书」名称的使用，始终服务于指称与检索，而不是视觉或话术上的官方化。</p><p class="longp">在 内容社区 中阅读公开信息，常见误判有三类：把标题情绪当事实、把转载当一手来源、把未证实渠道消息写进决策备忘。本站的纠偏顺序是：先主体、后时间、再对立解释、最后才行动。检索词「小红书 / Xiaohongshu」只负责发现候选，不负责证明相关。</p><p class="longp">风险栏目标展示量约为进展栏的三倍，不是为了制造负面，而是对冲传播结构：建设性通稿与合作稿通常更容易被放大。配额是展示纪律；当没有足够可信材料时，风险栏同样可以空态。空态比硬凑更有利于信任。</p><p class="longp">日更识别设定在北京时间 00:00，对应可预期的节奏。节奏服务的是漏读控制，而不是“每天必须有猛料”。任务失败时，正确做法是保留上次可信状态或显示空态，而不是用低质量填充换取“看起来很忙”。</p><p class="longp">若你把本页用于 Agent / MCP 相关工作，请把自动化当作加速器而不是责任转移：可交付物应可审计（依据是什么、不确定在哪里、影响范围、下一步是什么）。支付、删除、群发等不可逆动作必须门禁；密钥与生产数据默认不进演示环境。域名命名与落地页不能替代安全设计。</p><p class="longp">行业专属阅读框架（内容社区）：内容社区观察应覆盖创作者生态、商业化、算法分发、虚假信息与未成年人保护。 建议按结构轴「创作者工具与激励 / 商业化 / 推荐分发 / 治理与举报 / 隐私」组织材料，而不是按标题刺激度排序。</p><p class="longp">品牌观察切片：本页从 Agent 工作视角观察「小红书」：哪些任务可自动化、哪些必须门禁、哪些公开风险会污染自动化输入。 声誉驱动因素包括：产品/服务是否兑现公开承诺（对「小红书」最敏感的是 虚假信息）。；沟通是否及时：故障、召回、下架、涨价是否有清楚说明。；渠道体验：购买、配送、售后、门店或在线客服的公开投诉密度。；是否频繁出现主体错配（经销商、同名公司、山寨）。。</p><p class="longp">中国市场校对：若材料涉及中国市场，额外核对：主体中英文名是否一致、是否为授权商/经销商新闻、监管口径是否仅适用于特定省份或平台、中英文稿是否存在表述差。检索词可用：小红书 / Xiaohongshu。</p><p class="longp">最后，关于联系与边界：邮箱 admin@xiaohongshuagent.com 用于阅读反馈、纠错与域名沟通。请勿发送密码、验证码、私钥或支付口令。本站不会以官方客服身份要求你提供账户凭证；任何相反说法都应视为可疑。</p></div>
+    </div></section>
+
+    <section id="glossary"><div class="wrap">
+      <div class="sec-head"><div><h2>术语表</h2><p>统一用词，降低跨团队协作成本。</p></div></div>
+      <div class="g4"><div class="card"><h3>独立站</h3><p>与品牌权利人无隶属、无授权的信息页或资产页。出现品牌名不等于官方。</p></div><div class="card"><h3>进展栏</h3><p>展示建设性公开信息：发布、合作、扩产、升级等，需可核验。</p></div><div class="card"><h3>风险栏</h3><p>展示投诉、争议、合规、故障、处罚、召回等，目标展示量约为进展的三倍。</p></div><div class="card"><h3>证据门槛</h3><p>进入正式列表所需的最低材料质量：主体清晰、可回溯来源、时间可定位。</p></div><div class="card"><h3>空态</h3><p>今日无足够可信材料时的诚实展示，不等于“无事发生”。</p></div><div class="card"><h3>主体对齐</h3><p>确认报道对象确实是本页讨论的「小红书」，而非同名或无关实体。</p></div><div class="card"><h3>日更识别</h3><p>北京时间 00:00 触发的公开材料扫描与摘要任务（Cron 对应 UTC 16:00）。</p></div><div class="card"><h3>内容社区</h3><p>本页行业语境。阅读「小红书」相关信息时，需结合该行业的监管与渠道特征，避免孤立解读。</p></div><div class="card"><h3>不可逆门禁</h3><p>对支付、删除、群发等动作要求显式授权后才能执行。</p></div><div class="card"><h3>可审计交付</h3><p>结论必须绑定证据、不确定性与影响范围，便于第三方复核。</p></div><div class="card"><h3>人机交接</h3><p>自动化产物交给人工确认的标准包：上下文、未决问题、建议动作。</p></div></div>
+    </div></section>
+
+    <section id="resources"><div class="wrap">
+      <div class="sec-head"><div><h2>资源与检索入口</h2><p>用于人工复核与扩展阅读，不构成本站背书。</p></div></div>
+      <div class="g3"><a class="res" href="https://news.google.com/search?q=%E5%B0%8F%E7%BA%A2%E4%B9%A6&amp;hl=zh-CN&amp;gl=CN&amp;ceid=CN:zh-Hans" target="_blank" rel="noopener noreferrer"><strong>Google News 检索</strong><span>以「小红书」相关词检索公开报道入口</span></a><a class="res" href="https://duckduckgo.com/?q=%E5%B0%8F%E7%BA%A2%E4%B9%A6%20%2F%20Xiaohongshu&amp;ia=news" target="_blank" rel="noopener noreferrer"><strong>DuckDuckGo News</strong><span>补充检索与对照，不构成本站背书</span></a><a class="res" href="https://news.google.com/search?q=%E5%B0%8F%E7%BA%A2%E4%B9%A6+(recall OR lawsuit OR complaint OR fine OR 处罚 OR 投诉 OR 召回)&amp;hl=zh-CN&amp;gl=CN&amp;ceid=CN:zh-Hans" target="_blank" rel="noopener noreferrer"><strong>风险向检索</strong><span>投诉/处罚/召回等线索入口</span></a><a class="res" href="https://www.wipo.int/amc/en/domains/" target="_blank" rel="noopener noreferrer"><strong>WIPO 域名争议概览</strong><span>域名争议与程序背景（买方尽调参考）</span></a><a class="res" href="https://www.icann.org/resources/pages/dndr-2012-02-25-en" target="_blank" rel="noopener noreferrer"><strong>ICANN 域名争议资源</strong><span>政策背景阅读，非法律意见</span></a><a class="res" href="/api/news" target="_blank" rel="noopener noreferrer"><strong>本站新闻 API</strong><span>同域 JSON：positive / critical / updatedAt</span></a><a class="res" href="mailto:admin@xiaohongshuagent.com" target="_blank" rel="noopener noreferrer"><strong>邮件联系</strong><span>纠错、反馈、询价；勿发敏感凭证</span></a><a class="res" href="https://xiaohongshuagent.com/" target="_blank" rel="noopener noreferrer"><strong>本页首页</strong><span>规范入口，便于引用与核验声明</span></a></div>
+    </div></section>
+
+    <section id="faq"><div class="wrap">
+      <div class="sec-head"><div><h2>常见问题</h2><p>独立站、新闻编排、自动化边界与联系方式。</p></div></div>
+      <details class="faq"><summary>本站是官网吗？</summary><p>本站是关于「小红书」公开信息的独立观察页，与 小红书 及其关联公司无隶属、无授权、无代言、无代理关系。本站不提供官方客服、账户登录、售后受理或产品销售。页面出现的商标名、产品名仅用于指称公开讨论对象，便于检索与对照阅读。</p></details><details class="faq"><summary>新闻从哪里来？如何更新？</summary><p>北京时间每日 00:00 识别公开可访问材料，提取摘要后按进展/风险分栏展示，并尽量附原文链接。材料不足时显示空态，不编造条目。页面也可通过 /api/news 读取 JSON。</p></details><details class="faq"><summary>为什么风险栏比进展栏多？</summary><p>展示目标上风险/争议约为进展的三倍（上限约 12:4），用于对冲公开传播中进展稿更容易被放大的结构偏差。配额是上限，不是强制补齐；没有材料时风险栏也可以空。</p></details><details class="faq"><summary>摘要能直接当决策依据吗？</summary><p>不能。摘要只帮助扫描。诉讼、处罚、召回、采购、投资、公关响应等重大判断请回原文，并做独立尽调与专业意见。</p></details><details class="faq"><summary>如何判断一条信息是否值得跟进？</summary><p>看四点：主体是否匹配、是否有原文、是否有日期、是否影响你的决策。四者缺二，先降级为待核验。</p></details><details class="faq"><summary>为什么页面会出现「小红书」名称？</summary><p>名称仅用于指称公开讨论对象，便于检索与对照阅读，不代表授权、合作、代言或背书。</p></details><details class="faq"><summary>是否提供官方客服、登录或售后？</summary><p>不提供。账户、订单、退款、维修、门店与授权事宜请走权利人官方渠道。</p></details><details class="faq"><summary>可以要求删除某条摘要吗？</summary><p>请附原文链接与理由邮件说明。涉及事实核验的会复核；不接受无依据施压，也不因情绪化要求删除已核验公开事实。</p></details><details class="faq"><summary>新闻任务失败会怎样？</summary><p>页面保持可访问；新闻区显示空态或上次状态，不拿虚假条目填满。</p></details><details class="faq"><summary>是否存储用户个人信息？</summary><p>页面浏览不要求登录。请勿在邮件中发送密码、验证码、私钥或支付口令。</p></details><details class="faq"><summary>和域名销售是什么关系？</summary><p>如需合作或过户沟通，可邮件 admin@xiaohongshuagent.com。即使存在询价入口，本站仍是独立观察页，不是官网。</p></details><details class="faq"><summary>如何联系？</summary><p>邮件 admin@xiaohongshuagent.com。请写明来意（阅读反馈 / 纠错 / 询价）。本站不会以官方客服身份索要账户凭证。</p></details><details class="faq"><summary>可以把本页当作 Agent/MCP 后端吗？</summary><p>不可以。本页是说明与资讯编排，不提供可执行工具接口、密钥托管或代理操作。</p></details><details class="faq"><summary>自动化时最重要的纪律是什么？</summary><p>最小权限、证据绑定、不可逆门禁、失败降级。四者缺一，就不要进入生产。</p></details>
+    </div></section>
+
+    <section id="contact"><div class="wrap">
+      <div class="disc">
+        <h2>免责声明与联系</h2>
+        <p>本站是关于「小红书」公开信息的独立观察页，与 小红书 及其关联公司无隶属、无授权、无代言、无代理关系。本站不提供官方客服、账户登录、售后受理或产品销售。页面出现的商标名、产品名仅用于指称公开讨论对象，便于检索与对照阅读。</p>
+        <p>新闻区只做公开信息提取与编排，不构成投资、法律、医疗、采购或公关建议。转载摘要请回到原文核对上下文。</p>
+        <p>请勿向本站邮箱发送密码、验证码、私钥或支付口令。本站不会以官方客服身份索要账户凭证。</p>
+        <p><strong style="color:#fff">联系邮箱：</strong><a href="mailto:admin@xiaohongshuagent.com">admin@xiaohongshuagent.com</a></p>
+        <p><strong style="color:#fff">检索词：</strong>小红书 / Xiaohongshu</p>
+      </div>
+    </div></section>
+  </main>
+
+  <footer><div class="wrap">
+    <div><strong>xiaohongshuagent.com</strong><br>小红书内容工作台</div>
+    <div>独立观察 / 销售页 · 与品牌无关 · 日更识别 00:00 CST · 详尽编辑页</div>
+  </div></footer>
+
+  <script>
+  (function(){
+    function esc(s){return String(s||"").replace(/[&<>"']/g,function(c){return ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"})[c];});}
+    function cards(items, side){
+      if(!items||!items.length){
+        return '<div class="empty">'+(side==="positive"?"今日暂无足够可信的进展类公开材料。":"今日暂无足够可信的风险/争议类公开材料。")+'</div>';
+      }
+      return items.map(function(item, idx){
+        var label = side==="positive" ? "进展" : "风险/争议";
+        return '<article class="nc '+side+'"><div class="nc-meta"><span class="badge">'+label+' '+String(idx+1).padStart(2,"0")+'</span><span>'+esc(item.source||"公开来源")+'</span></div><h3><a href="'+esc(item.url)+'" target="_blank" rel="noopener noreferrer">'+esc(item.title)+'</a></h3><p>'+esc(item.summary)+'</p><div class="nc-foot"><a href="'+esc(item.url)+'" target="_blank" rel="noopener noreferrer">阅读原文</a><span>'+esc(item.publishedAt||"日期以原文为准")+'</span></div></article>';
+      }).join("");
+    }
+    fetch("/api/news?domain="+encodeURIComponent(location.hostname.replace(/^www\./,"").toLowerCase()),{credentials:"same-origin"})
+      .then(function(r){return r.ok?r.json():null})
+      .then(function(data){
+        if(!data) return;
+        var pos=data.positive||[]; var crit=data.critical||[];
+        if(data.updatedAt){ var el=document.getElementById("news-updated"); if(el) el.textContent=data.updatedAt; }
+        var pc=document.getElementById("pos-count"); if(pc) pc.textContent=String(pos.length||0);
+        var cc=document.getElementById("crit-count"); if(cc) cc.textContent=String(crit.length||0);
+        var pcl=document.getElementById("pos-count-label"); if(pcl) pcl.textContent=String(pos.length||0);
+        var ccl=document.getElementById("crit-count-label"); if(ccl) ccl.textContent=String(crit.length||0);
+        var pl=document.getElementById("positive-list"); if(pl && pos.length) pl.innerHTML=cards(pos,"positive");
+        var cl=document.getElementById("critical-list"); if(cl && crit.length) cl.innerHTML=cards(crit,"critical");
+      }).catch(function(){});
+  })();
+  </script>
+</body>
+</html>
